@@ -1,0 +1,14 @@
+services:
+  ntfy-bridge:
+    build: .
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      NTFY_URL: https://ntfy.sh
+      API_TOKEN: ""
+      LISTEN_ADDR: 0.0.0.0:8080
+      NTFY_TOKEN: ""
+      NTFY_USERNAME: ""
+      NTFY_PASSWORD: ""
+      RATE_LIMIT_PER_SECOND: 2
+      RATE_LIMIT_BURST: 5
