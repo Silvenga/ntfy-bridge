@@ -1,11 +1,11 @@
 ### Health Check (Public)
-GET {{host}}/api/v1/health
+GET {{host}}/{{base_path}}/v1/health
 
 ### Robots.txt (Public)
 GET {{host}}/robots.txt
 
 ### Netdata Webhook (Protected)
-POST {{host}}/api/v1/{{topic}}/netdata
+POST {{host}}/{{base_path}}/v1/{{topic}}/netdata
 Content-Type: application/json
 
 {
@@ -29,7 +29,7 @@ Content-Type: application/json
 }
 
 ### Netdata Reachability Webhook (Protected)
-POST {{host}}/api/v1/{{topic}}/netdata
+POST {{host}}/{{base_path}}/v1/{{topic}}/netdata
 Content-Type: application/json
 
 {

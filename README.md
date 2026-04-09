@@ -34,6 +34,8 @@ Options:
           Rate limit burst size [env: RATE_LIMIT_BURST=] [default: 5]
       --use-x-forwarded-for
           Trust X-Forwarded-For headers from a reverse proxy [env: USE_X_FORWARDED_FOR=]
+      --base-path <BASE_PATH>
+          Base path for the API [env: BASE_PATH=] [default: api]
       --log-level <LOG_LEVEL>
           Log level [env: LOG_LEVEL=] [default: info]
   -h, --help

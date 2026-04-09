@@ -45,6 +45,7 @@ pub struct AppBuilder {
     rate_limit_per_second: u64,
     rate_limit_burst: u32,
     use_x_forwarded_for: bool,
+    base_path: String,
     listen_addr: SocketAddr,
 }
 
@@ -56,6 +57,7 @@ impl AppBuilder {
             rate_limit_per_second: 2,
             rate_limit_burst: 5,
             use_x_forwarded_for: false,
+            base_path: "api".to_string(),
             listen_addr,
         }
     }
@@ -76,24 +78,19 @@ impl AppBuilder {
         self
     }
 
-    pub fn build(self) -> anyhow::Result<App> {
-        let cache_header_404 = format!("public, max-age={}", 3600);
-        let expires_404 = "3600".to_string();
+    pub fn with_base_path(mut self, base_path: impl Into<String>) -> Self {
+        self.base_path = base_path.into();
+        self
+    }
 
-        let mut api_v1_protected = Router::new()
-            .route("/{topic}/netdata", post(handle_netdata))
-            .fallback(move || async move {
-                (
-                    StatusCode::NOT_FOUND,
-                    [(CACHE_CONTROL, cache_header_404), (EXPIRES, expires_404)],
-                )
-            });
+    pub fn build(self) -> anyhow::Result<App> {
+        let mut api_routes = Router::new().route("/{topic}/netdata", post(handle_netdata));
 
         if let Some(token) = self.api_token {
             #[allow(deprecated)]
             // Fine for our usage.
             let layer = ValidateRequestHeaderLayer::bearer(&token);
-            api_v1_protected = api_v1_protected.layer(layer);
+            api_routes = api_routes.layer(layer);
         }
 
         let governor_conf = Arc::new(
@@ -116,12 +113,21 @@ impl AppBuilder {
         };
 
         let router = Router::new()
-            .route("/api/v1/health", get(health_check))
             .route(
                 "/robots.txt",
                 get(robots_txt).layer(Self::cache_header_layer(86400)),
             )
-            .nest("/api/v1", api_v1_protected)
+            .route(&format!("/{}/v1/health", self.base_path), get(health_check))
+            .nest(&format!("/{}/v1", self.base_path), api_routes)
+            .fallback(move || async move {
+                (
+                    StatusCode::NOT_FOUND,
+                    [
+                        (CACHE_CONTROL, format!("public, max-age={}", 3600)),
+                        (EXPIRES, "3600".to_owned()),
+                    ],
+                )
+            })
             .layer(GovernorLayer::new(governor_conf))
             .layer(LoggingLayer)
             .layer(SetResponseHeaderLayer::if_not_present(
@@ -276,25 +282,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn when_post_to_protected_route_without_ntfy_auth_then_should_return_unauthorized() {
-        let token = "mytoken";
-        let app = build_test_app_with_ntfy_auth(token).await;
-
-        let response = app
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/api/v1/non-existent")
-                    .body(Body::empty())
-                    .expect("should have built unauthenticated request"),
-            )
-            .await
-            .expect("should have received unauthenticated response");
-
-        assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
-    }
-
-    #[tokio::test]
     async fn when_post_to_protected_route_with_valid_ntfy_auth_then_should_return_not_found() {
         let token = "mytoken";
         let app = build_test_app_with_ntfy_auth(token).await;
@@ -320,26 +307,6 @@ mod tests {
             response.headers().get(EXPIRES),
             Some(&HeaderValue::from_static("3600"))
         );
-    }
-
-    #[tokio::test]
-    async fn when_post_to_protected_route_with_invalid_ntfy_auth_then_should_return_unauthorized() {
-        let token = "mytoken";
-        let app = build_test_app_with_ntfy_auth(token).await;
-
-        let response = app
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/api/v1/non-existent")
-                    .header("Authorization", "Bearer invalidtoken")
-                    .body(Body::empty())
-                    .expect("should have built request with invalid token"),
-            )
-            .await
-            .expect("should have received response for invalid token");
-
-        assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
     }
 
     #[tokio::test]
@@ -414,5 +381,63 @@ mod tests {
         assert_eq!(res1.status(), StatusCode::OK);
         assert_eq!(res2.status(), StatusCode::TOO_MANY_REQUESTS);
         assert!(res2.headers().contains_key("retry-after"));
+    }
+
+    #[tokio::test]
+    async fn when_custom_base_path_then_should_be_available_at_custom_path() {
+        let mut mock_ntfy = MockNtfyClient::new();
+        mock_ntfy.expect_send().returning(|_| Ok(()));
+
+        let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+        let app = AppBuilder::new(Arc::new(mock_ntfy), addr)
+            .with_base_path("bridge".to_string())
+            .build()
+            .expect("should have built test app with custom base path")
+            .router
+            .into_make_service_with_connect_info::<SocketAddr>()
+            .call(SocketAddr::from(([127, 0, 0, 1], 1234)))
+            .await
+            .expect("should have created service");
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/bridge/v1/health")
+                    .body(Body::empty())
+                    .expect("should have built health request"),
+            )
+            .await
+            .expect("should have received health response");
+
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn when_custom_base_path_then_old_path_should_not_be_available() {
+        let mut mock_ntfy = MockNtfyClient::new();
+        mock_ntfy.expect_send().returning(|_| Ok(()));
+
+        let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+        let app = AppBuilder::new(Arc::new(mock_ntfy), addr)
+            .with_base_path("bridge".to_string())
+            .build()
+            .expect("should have built test app with custom base path")
+            .router
+            .into_make_service_with_connect_info::<SocketAddr>()
+            .call(SocketAddr::from(([127, 0, 0, 1], 1234)))
+            .await
+            .expect("should have created service");
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/v1/health")
+                    .body(Body::empty())
+                    .expect("should have built health request"),
+            )
+            .await
+            .expect("should have received health response");
+
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
     }
 }

@@ -55,6 +55,10 @@ pub struct Config {
     #[arg(env = "USE_X_FORWARDED_FOR", long, default_value_t = false)]
     pub use_x_forwarded_for: bool,
 
+    /// Base path for the API
+    #[arg(env = "BASE_PATH", long, default_value = "api")]
+    pub base_path: String,
+
     /// Log level
     #[arg(env = "LOG_LEVEL", long, default_value = "info")]
     pub log_level: String,
@@ -70,6 +74,7 @@ impl fmt::Display for Config {
             .field("rate_limit_per_second", &self.rate_limit_per_second)
             .field("rate_limit_burst", &self.rate_limit_burst)
             .field("use_x_forwarded_for", &self.use_x_forwarded_for)
+            .field("base_path", &self.base_path)
             .field("log_level", &self.log_level)
             .finish()
     }
@@ -159,6 +164,10 @@ impl Config {
 
     pub fn use_x_forwarded_for(&self) -> bool {
         self.use_x_forwarded_for
+    }
+
+    pub fn base_path(&self) -> &str {
+        &self.base_path
     }
 
     pub fn log_level(&self) -> &str {
