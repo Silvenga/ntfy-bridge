@@ -3,34 +3,36 @@ use crate::state::AppState;
 use axum::{
     Json,
     extract::{Path, State},
+    http::StatusCode,
+    response::IntoResponse,
 };
 use ntfy::Payload;
-use tracing::info;
+use tracing::{error, info};
 
 pub async fn handle_netdata(
     State(state): State<AppState>,
-    Path(channel): Path<String>,
+    Path(topic): Path<String>,
     Json(payload): Json<NetdataPayload>,
-) -> Json<NetdataPayload> {
+) -> impl IntoResponse {
     info!(
-        "Received netdata webhook for channel {}: {:?}",
-        channel, payload
+        "Received netdata webhook for topic {}: {:?}",
+        topic, payload
     );
 
     let ntfy_payload = match &payload {
-        NetdataPayload::Alert(alert) => Payload::new(&channel)
+        NetdataPayload::Alert(alert) => Payload::new(&topic)
             .message(&alert.message)
             .title(&alert.alert)
             .tags(vec![alert.severity.clone(), alert.class.clone()]),
-        NetdataPayload::Reachability(reach) => Payload::new(&channel)
+        NetdataPayload::Reachability(reach) => Payload::new(&topic)
             .message(&reach.message)
             .title(format!("Reachability: {}", reach.host))
             .tags(vec![reach.severity.clone(), reach.status.text.clone()]),
     };
 
     if let Err(e) = state.ntfy_client.send(&ntfy_payload).await {
-        tracing::error!("Failed to send notification to ntfy: {:?}", e);
+        error!("Failed to send notification to ntfy: {:?}", e);
     }
 
-    Json(payload)
+    StatusCode::ACCEPTED
 }

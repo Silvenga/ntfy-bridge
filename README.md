@@ -1,6 +1,6 @@
 # ntfy-bridge
 
-A simple bridge for [ntfy](https://ntfy.sh) that forwards webhooks from various services to ntfy topics.
+A simple bridge for [ntfy](https://ntfy.sh) that forwards webhooks from various services to Ntfy topics.
 
 ## Features
 
@@ -8,17 +8,36 @@ A simple bridge for [ntfy](https://ntfy.sh) that forwards webhooks from various 
 - Bearer token authentication for API access.
 - Built-in rate limiting.
 
-## Environment Variables
+## Configuration
 
-The following environment variables can be used to configure the bridge.
+The bridge can be configured via command-line options, environment variables, or both.
 
-| Variable                | Default           | Description                     |
-|-------------------------|-------------------|---------------------------------|
-| `NTFY_URL`              | `https://ntfy.sh` | ntfy server URL                 |
-| `API_TOKEN`             |                   | API token for authentication    |
-| `LISTEN_ADDR`           | `0.0.0.0:8080`    | Address to listen on            |
-| `RATE_LIMIT_PER_SECOND` | `2`               | Rate limit requests per second  |
-| `RATE_LIMIT_BURST`      | `5`               | Rate limit burst size           |
-| `NTFY_TOKEN`            |                   | ntfy access token               |
-| `NTFY_USERNAME`         |                   | ntfy username                   |
-| `NTFY_PASSWORD`         |                   | ntfy password                   |
+```text
+Usage: ntfy-bridge [OPTIONS]
+
+Options:
+      --ntfy-url <NTFY_URL>
+          Ntfy server URL [env: NTFY_URL=https://ntfy.sh] [default: https://ntfy.sh]
+      --ntfy-username <NTFY_USERNAME>
+          Ntfy username [env: NTFY_USERNAME=]
+      --ntfy-password <NTFY_PASSWORD>
+          Ntfy password [env: NTFY_PASSWORD=]
+      --ntfy-token <NTFY_TOKEN>
+          Ntfy access token [env: NTFY_TOKEN=]
+      --api-token <API_TOKEN>
+          API token for authentication [env: API_TOKEN=]
+      --listen-addr <LISTEN_ADDR>
+          Address to listen on [env: LISTEN_ADDR=] [default: 0.0.0.0:8080]
+      --rate-limit-per-second <RATE_LIMIT_PER_SECOND>
+          Rate limit requests per second [env: RATE_LIMIT_PER_SECOND=] [default: 2]
+      --rate-limit-burst <RATE_LIMIT_BURST>
+          Rate limit burst size [env: RATE_LIMIT_BURST=] [default: 5]
+      --use-x-forwarded-for
+          Trust X-Forwarded-For headers from a reverse proxy [env: USE_X_FORWARDED_FOR=]
+      --log-level <LOG_LEVEL>
+          Log level [env: LOG_LEVEL=] [default: info]
+  -h, --help
+          Print help
+  -V, --version
+          Print version
+```

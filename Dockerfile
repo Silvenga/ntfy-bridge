@@ -20,11 +20,15 @@ FROM debian:trixie-slim
 RUN apt-get update \
     && apt-get install -y \
     ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd -g 1000 ntfy-bridge \
+    && useradd -u 1000 -g ntfy-bridge -m -s /bin/bash ntfy-bridge
 
 WORKDIR /app
 
 COPY --from=builder /app/target/release/ntfy-bridge /usr/local/bin/
+
+USER ntfy-bridge
 
 EXPOSE 8080
 

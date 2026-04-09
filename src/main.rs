@@ -1,26 +1,31 @@
 mod app;
 mod config;
+mod logging;
 mod ntfy;
 mod routes;
 mod state;
-
-use ntfy::NtfyHttpClientBuilder;
-use state::AppState;
-use std::{net::SocketAddr, panic, sync::Arc};
-use tracing::{Level, info, warn};
+use crate::app::AppBuilder;
+use crate::config::Config;
+use crate::ntfy::NtfyClientBuilder;
+use anyhow::Context;
+use std::panic;
+use std::str::FromStr;
+use tracing::{Level, info, subscriber, warn};
 use tracing_subscriber::FmtSubscriber;
 
 #[tokio::main]
-async fn main() {
-    let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::TRACE)
-        .finish();
+async fn main() -> anyhow::Result<()> {
+    let config = Config::load();
 
-    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+    let level = Level::from_str(config.log_level()).unwrap_or(Level::INFO);
+
+    let subscriber = FmtSubscriber::builder().with_max_level(level).finish();
+
+    subscriber::set_global_default(subscriber).context("should have set default subscriber")?;
 
     panic::set_hook(Box::new(tracing_panic::panic_hook));
 
-    let config = config::Config::load();
+    info!("Loaded config: {}", config);
 
     if config.api_token().is_none() {
         warn!("No API token configured. Server is running without authentication.");
@@ -28,31 +33,25 @@ async fn main() {
 
     info!("Starting ntfy-bridge server...");
 
-    let mut ntfy_builder = NtfyHttpClientBuilder::new(config.ntfy_url());
-    if let Some((username, password)) = config.ntfy_credentials() {
-        ntfy_builder = ntfy_builder.with_credentials(username, password);
-    } else if let Some(token) = config.ntfy_token() {
-        ntfy_builder = ntfy_builder.with_token(token);
-    }
-    let ntfy_client = Arc::new(ntfy_builder.build().expect("failed to build ntfy client"));
+    let ntfy_client = NtfyClientBuilder::new(config.ntfy_url(), config.ntfy_credentials())
+        .build()
+        .context("should have built ntfy client")?;
 
-    let state = AppState { ntfy_client };
+    let app = AppBuilder::new(
+        ntfy_client,
+        config
+            .listen_addr()
+            .parse()
+            .context("should have parsed listen address")?,
+    )
+    .with_api_token(config.api_token().map(|s| s.to_owned()))
+    .with_rate_limit(config.rate_limit_per_second(), config.rate_limit_burst())
+    .with_use_x_forwarded_for(config.use_x_forwarded_for())
+    .build()?;
 
-    let api_token = config.api_token().map(|s| s.to_owned());
-    let rate_limit_per_second = config.rate_limit_per_second();
-    let rate_limit_burst = config.rate_limit_burst();
-    let app = app::app(state, api_token, rate_limit_per_second, rate_limit_burst);
-
-    let addr: SocketAddr = config
-        .listen_addr()
-        .parse()
-        .expect("invalid listen address");
-    info!("Listening on {}", addr);
-
-    let listener = tokio::net::TcpListener::bind(addr)
+    app.serve()
         .await
-        .expect("should have bound to address");
-    axum::serve(listener, app)
-        .await
-        .expect("should have started axum server");
+        .context("should have started axum server")?;
+
+    Ok(())
 }

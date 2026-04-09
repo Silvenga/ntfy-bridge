@@ -1,0 +1,44 @@
+### Health Check (Public)
+GET {{host}}/api/v1/health
+
+### Robots.txt (Public)
+GET {{host}}/robots.txt
+
+### Netdata Webhook (Protected)
+POST {{host}}/api/v1/{{topic}}/netdata
+Content-Type: application/json
+
+{
+  "message": "test message from http file",
+  "alert": "test alert",
+  "info": "test info",
+  "chart": "test chart",
+  "context": "test context",
+  "space": "test space",
+  "rooms": {
+    "room1": "url1"
+  },
+  "family": "test family",
+  "class": "Error",
+  "severity": "critical",
+  "date": "2024-01-01T00:00:00Z",
+  "duration": "1m",
+  "additional_active_critical_alerts": 1,
+  "additional_active_warning_alerts": 2,
+  "alert_url": "http://example.com"
+}
+
+### Netdata Reachability Webhook (Protected)
+POST {{host}}/api/v1/{{topic}}/netdata
+Content-Type: application/json
+
+{
+  "message": "host is unreachable",
+  "url": "http://example.com",
+  "host": "test-host",
+  "severity": "critical",
+  "status": {
+    "reachable": false,
+    "text": "unreachable"
+  }
+}
