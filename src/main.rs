@@ -8,7 +8,6 @@ mod state;
 use crate::app::AppBuilder;
 use crate::config::Config;
 use crate::ntfy::NtfyClientBuilder;
-use anyhow::Context;
 use std::panic;
 use std::str::FromStr;
 use tracing::{Level, info, subscriber, warn};
