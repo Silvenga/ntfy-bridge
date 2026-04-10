@@ -4,8 +4,16 @@ use std::collections::HashMap;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum NetdataPayload {
+    Token(NetdataTokenPayload),
     Alert(Box<NetdataAlertPayload>),
     Reachability(NetdataReachabilityPayload),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct NetdataTokenPayload {
+    pub message: String,
+    pub title: String,
+    pub token: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -109,6 +117,30 @@ mod tests {
                 assert!(!reach.status.reachable);
             }
             _ => panic!("should have been a reachability payload"),
+        }
+    }
+
+    #[test]
+    fn when_parsing_token_payload_then_should_succeed() {
+        let data = json!({
+            "message": "This is a Test Notification. If you're receiving it, your Webhook integration is configured properly!",
+            "title": "Test Notification",
+            "token": "2b633082-34ec-4ec3-946c-5e81076c39af"
+        });
+
+        let payload: NetdataPayload =
+            serde_json::from_value(data).expect("should have parsed reachability payload");
+
+        match payload {
+            NetdataPayload::Token(reach) => {
+                assert_eq!(
+                    reach.message,
+                    "This is a Test Notification. If you're receiving it, your Webhook integration is configured properly!"
+                );
+                assert_eq!(reach.title, "Test Notification");
+                assert_eq!(reach.token, "2b633082-34ec-4ec3-946c-5e81076c39af");
+            }
+            _ => panic!("should have been a token payload"),
         }
     }
 }

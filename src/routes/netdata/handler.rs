@@ -20,6 +20,9 @@ pub async fn handle_netdata(
     );
 
     let ntfy_payload = match &payload {
+        NetdataPayload::Token(token) => Payload::new(&topic)
+            .message(format!("{} Token: {}", token.message, token.token))
+            .title(&token.title),
         NetdataPayload::Alert(alert) => Payload::new(&topic)
             .message(&alert.message)
             .title(&alert.alert)
