@@ -12,7 +12,7 @@ RUN mkdir src \
 COPY src ./src
 
 RUN touch src/main.rs \
-    && cargo test \
+    && cargo test --release \
     && cargo build --release
 
 FROM debian:trixie-slim
