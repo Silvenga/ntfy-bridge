@@ -1,6 +1,6 @@
 use crate::logging::LoggingLayer;
 use crate::ntfy::NtfyClientShared;
-use crate::routes::{handle_netdata, health_check, robots_txt};
+use crate::routes::{handle_dump, handle_netdata, health_check, robots_txt};
 use crate::state::AppState;
 use anyhow::Context;
 use axum::http::header::{CACHE_CONTROL, EXPIRES, SERVER};
@@ -84,7 +84,9 @@ impl AppBuilder {
     }
 
     pub fn build(self) -> anyhow::Result<App> {
-        let mut api_routes = Router::new().route("/{topic}/netdata", post(handle_netdata));
+        let mut api_routes = Router::new()
+            .route("/{topic}/netdata", post(handle_netdata))
+            .route("/dump", post(handle_dump));
 
         if let Some(token) = self.api_token {
             #[allow(deprecated)]

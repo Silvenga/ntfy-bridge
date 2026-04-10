@@ -42,3 +42,18 @@ Content-Type: application/json
     "text": "unreachable"
   }
 }
+
+### Dump
+POST {{host}}/{{base_path}}/v1/dump
+Content-Type: application/json
+
+{
+  "message": "host is unreachable",
+  "url": "http://example.com",
+  "host": "test-host",
+  "severity": "critical",
+  "status": {
+    "reachable": false,
+    "text": "unreachable"
+  }
+}
