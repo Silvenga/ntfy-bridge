@@ -4,56 +4,51 @@ GET {{host}}/{{base_path}}/v1/health
 ### Robots.txt (Public)
 GET {{host}}/robots.txt
 
-### Netdata Webhook (Protected)
+### Netdata Token Webhook (Protected)
 POST {{host}}/{{base_path}}/v1/{{topic}}/netdata
 Content-Type: application/json
+Authorization: {{auth}}
 
-{
-  "message": "test message from http file",
-  "alert": "test alert",
-  "info": "test info",
-  "chart": "test chart",
-  "context": "test context",
-  "space": "test space",
-  "rooms": {
-    "room1": "url1"
-  },
-  "family": "test family",
-  "class": "Error",
-  "severity": "critical",
-  "date": "2024-01-01T00:00:00Z",
-  "duration": "1m",
-  "additional_active_critical_alerts": 1,
-  "additional_active_warning_alerts": 2,
-  "alert_url": "http://example.com"
-}
+< docs/playloads/netdata-token.json
 
-### Netdata Reachability Webhook (Protected)
+### Netdata Alert Webhook - Critical (Protected)
 POST {{host}}/{{base_path}}/v1/{{topic}}/netdata
 Content-Type: application/json
+Authorization: {{auth}}
 
-{
-  "message": "host is unreachable",
-  "url": "http://example.com",
-  "host": "test-host",
-  "severity": "critical",
-  "status": {
-    "reachable": false,
-    "text": "unreachable"
-  }
-}
+< docs/playloads/netdata-alert-critical.json
+
+### Netdata Alert Webhook - Warning (Protected)
+POST {{host}}/{{base_path}}/v1/{{topic}}/netdata
+Content-Type: application/json
+Authorization: {{auth}}
+
+< docs/playloads/netdata-alert-warning.json
+
+### Netdata Alert Webhook - Recovered (Protected)
+POST {{host}}/{{base_path}}/v1/{{topic}}/netdata
+Content-Type: application/json
+Authorization: {{auth}}
+
+< docs/playloads/netdata-alert-recovered.json
+
+### Netdata Reachability Webhook - Unreachable (Protected)
+POST {{host}}/{{base_path}}/v1/{{topic}}/netdata
+Content-Type: application/json
+Authorization: {{auth}}
+
+< docs/playloads/netdata-reachability-unreachable.json
+
+### Netdata Reachability Webhook - Reachable (Protected)
+POST {{host}}/{{base_path}}/v1/{{topic}}/netdata
+Content-Type: application/json
+Authorization: {{auth}}
+
+< docs/playloads/netdata-reachability-reachable.json
 
 ### Dump
 POST {{host}}/{{base_path}}/v1/dump
 Content-Type: application/json
+Authorization: {{auth}}
 
-{
-  "message": "host is unreachable",
-  "url": "http://example.com",
-  "host": "test-host",
-  "severity": "critical",
-  "status": {
-    "reachable": false,
-    "text": "unreachable"
-  }
-}
+< docs/playloads/netdata-alert-critical.json
