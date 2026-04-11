@@ -1,0 +1,92 @@
+{
+  "message": "Recovered, System memory utilization = 12.6%, on la1.node.garland.slvn.co",
+  "space": {
+    "id": "399a3ded-8276-429e-9c24-1e69f06efdd8",
+    "name": "Slvn.co",
+    "slug": "slvn-co"
+  },
+  "node": {
+    "id": "e84d4453-cb1f-48b5-abfd-0a82629712bd",
+    "hostname": "la1.node.garland.slvn.co",
+    "rooms": [
+      {
+        "id": "13662d82-19a5-401a-834d-e32b42a116c3",
+        "name": "All nodes",
+        "slug": "all-nodes",
+        "url": "https://app.netdata.cloud/spaces/slvn-co/rooms/all-nodes"
+      }
+    ]
+  },
+  "alert": {
+    "name": "ram_in_use",
+    "chart": {
+      "id": "system.ram",
+      "name": "system.ram"
+    },
+    "context": "system.ram",
+    "state": {
+      "status": "Clear",
+      "value": 12.647275380759135,
+      "value_str": "12.6%"
+    },
+    "prev_state": {
+      "status": "Warning",
+      "value": 93.7640195625172,
+      "value_str": "93.8%"
+    },
+    "triggered_at": "2026-04-10T22:15:08-05:00",
+    "transition_id": "01a32f9e-9bc6-443d-a2b4-b65fcafa7942",
+    "duration": {
+      "value": 190,
+      "value_str": "3 minutes",
+      "non_clear": 190
+    },
+    "location": {
+      "timezone": "CDT",
+      "utc_offset": -18000
+    },
+    "config": {
+      "hash": "cb2c3296-6ead-4828-bf27-2a613af61c9c",
+      "classification": "Utilization",
+      "recipient": "sysadmin",
+      "command": "sudo /etc/netdata/edit-config health.d/ram.conf",
+      "line": 3,
+      "centralisation_point": {
+        "hostname": "netdata.service.garland.slvn.co"
+      }
+    },
+    "rendered": {
+      "info": "System memory utilization",
+      "summary": "System memory utilization"
+    },
+    "log": {
+      "total": {
+        "critical": 1,
+        "warning": 3
+      },
+      "entries": [
+        {
+          "name": "out_of_disk_space_time",
+          "status": "Critical",
+          "triggered_at": "2026-04-10T21:42:36-05:00"
+        },
+        {
+          "name": "30min_ram_swapped_out",
+          "status": "Warning",
+          "triggered_at": "2026-04-10T22:12:36-05:00"
+        },
+        {
+          "name": "load_average_15",
+          "status": "Warning",
+          "triggered_at": "2026-04-10T22:15:02-05:00"
+        },
+        {
+          "name": "oom_kill",
+          "status": "Warning",
+          "triggered_at": "2026-04-10T22:19:36-05:00"
+        }
+      ]
+    },
+    "url": "https://app.netdata.cloud/spaces/slvn-co/rooms/all-nodes/alerts/system.ram.ram_in_use:::e84d4453-cb1f-48b5-abfd-0a82629712bd?chart=system.ram\u0026alarm=ram_in_use\u0026transition=01a32f9e-9bc6-443d-a2b4-b65fcafa7942"
+  }
+}

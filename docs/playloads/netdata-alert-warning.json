@@ -1,0 +1,82 @@
+{
+  "message": "Raised to Warning, System memory utilization = 90.1%, on gn4.node.garland.slvn.co",
+  "space": {
+    "id": "399a3ded-8276-429e-9c24-1e69f06efdd8",
+    "name": "Slvn.co",
+    "slug": "slvn-co"
+  },
+  "node": {
+    "id": "7606a57d-840c-4cd5-82c8-7a852adc67c6",
+    "hostname": "gn4.node.garland.slvn.co",
+    "rooms": [
+      {
+        "id": "13662d82-19a5-401a-834d-e32b42a116c3",
+        "name": "All nodes",
+        "slug": "all-nodes",
+        "url": "https://app.netdata.cloud/spaces/slvn-co/rooms/all-nodes"
+      }
+    ]
+  },
+  "alert": {
+    "name": "ram_in_use",
+    "chart": {
+      "id": "system.ram",
+      "name": "system.ram"
+    },
+    "context": "system.ram",
+    "state": {
+      "status": "Warning",
+      "value": 90.12342188151267,
+      "value_str": "90.1%"
+    },
+    "prev_state": {
+      "status": "Clear",
+      "value": 89.51907330531182,
+      "value_str": "89.5%"
+    },
+    "triggered_at": "2026-04-10T20:22:19-06:00",
+    "transition_id": "6891cbbf-4236-4edd-ae88-63ecb572fe9b",
+    "duration": {
+      "value": 74678,
+      "value_str": "20 hours",
+      "non_clear": 0
+    },
+    "location": {
+      "timezone": "CST",
+      "utc_offset": -21600
+    },
+    "config": {
+      "hash": "cb2c3296-6ead-4828-bf27-2a613af61c9c",
+      "classification": "Utilization",
+      "recipient": "sysadmin",
+      "command": "sudo /etc/netdata/edit-config health.d/ram.conf",
+      "line": 3,
+      "centralisation_point": {
+        "hostname": "netdata.service.garland.slvn.co"
+      }
+    },
+    "rendered": {
+      "info": "System memory utilization",
+      "summary": "System memory utilization"
+    },
+    "log": {
+      "total": {
+        "critical": 0,
+        "warning": 2
+      },
+      "entries": [
+        {
+          "name": "system_post_update_reboot_status",
+          "status": "Warning",
+          "triggered_at": "2026-03-31T23:35:20-06:00"
+        },
+        {
+          "name": "ram_available",
+          "status": "Warning",
+          "triggered_at": "2026-04-05T15:03:32-06:00"
+        }
+      ]
+    },
+    "url": "https://app.netdata.cloud/spaces/slvn-co/rooms/all-nodes/alerts/system.ram.ram_in_use:::7606a57d-840c-4cd5-82c8-7a852adc67c6?chart=system.ram\u0026alarm=ram_in_use\u0026transition=6891cbbf-4236-4edd-ae88-63ecb572fe9b"
+  }
+}

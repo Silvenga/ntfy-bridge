@@ -1,0 +1,30 @@
+{
+  "message": "Slvn.co/sa1.node.garland.slvn.co is unreachable",
+  "space": {
+    "id": "399a3ded-8276-429e-9c24-1e69f06efdd8",
+    "name": "Slvn.co",
+    "slug": "slvn-co",
+    "nodes_stats": {
+      "total": 44,
+      "live": 43,
+      "offline": 0,
+      "created": 0,
+      "removed": 0,
+      "stale": 1
+    }
+  },
+  "centralisation_point": {
+    "id": "2e664069-18f8-4386-a4d1-69caabd19a3b",
+    "hostname": "netdata.service.garland.slvn.co"
+  },
+  "nodes": [
+    {
+      "id": "6c7cc3a5-33d8-4b02-b882-ebd04e8c6009",
+      "hostname": "sa1.node.garland.slvn.co"
+    }
+  ],
+  "severity": "critical",
+  "status": "unreachable",
+  "reachable": false,
+  "url": "https://app.netdata.cloud/spaces/slvn-co/rooms/all-nodes/nodes/6c7cc3a5-33d8-4b02-b882-ebd04e8c6009"
+}

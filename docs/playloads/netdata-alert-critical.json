@@ -1,0 +1,87 @@
+{
+  "message": "Raised to Critical, System swap memory utilization = 100%, on la1.node.garland.slvn.co",
+  "space": {
+    "id": "399a3ded-8276-429e-9c24-1e69f06efdd8",
+    "name": "Slvn.co",
+    "slug": "slvn-co"
+  },
+  "node": {
+    "id": "e84d4453-cb1f-48b5-abfd-0a82629712bd",
+    "hostname": "la1.node.garland.slvn.co",
+    "rooms": [
+      {
+        "id": "13662d82-19a5-401a-834d-e32b42a116c3",
+        "name": "All nodes",
+        "slug": "all-nodes",
+        "url": "https://app.netdata.cloud/spaces/slvn-co/rooms/all-nodes"
+      }
+    ]
+  },
+  "alert": {
+    "name": "used_swap",
+    "chart": {
+      "id": "mem.swap",
+      "name": "mem.swap"
+    },
+    "context": "mem.swap",
+    "state": {
+      "status": "Critical",
+      "value": 99.9990463238646,
+      "value_str": "100%"
+    },
+    "prev_state": {
+      "status": "Clear",
+      "value": 0,
+      "value_str": "0%"
+    },
+    "triggered_at": "2026-04-10T22:11:48-05:00",
+    "transition_id": "ee19d16d-e3d5-43f3-b313-c9f7ee6fc7f8",
+    "duration": {
+      "value": 2232,
+      "value_str": "37 minutes",
+      "non_clear": 0
+    },
+    "location": {
+      "timezone": "CDT",
+      "utc_offset": -18000
+    },
+    "config": {
+      "hash": "bde2cfa3-dbaa-42c4-bba2-5fd798142f2a",
+      "classification": "Utilization",
+      "recipient": "sysadmin",
+      "command": "sudo /etc/netdata/edit-config health.d/swap.conf",
+      "line": 20,
+      "centralisation_point": {
+        "hostname": "netdata.service.garland.slvn.co"
+      }
+    },
+    "rendered": {
+      "info": "Swap memory utilization",
+      "summary": "System swap memory utilization"
+    },
+    "log": {
+      "total": {
+        "critical": 1,
+        "warning": 2
+      },
+      "entries": [
+        {
+          "name": "out_of_disk_space_time",
+          "status": "Critical",
+          "triggered_at": "2026-04-10T21:42:36-05:00"
+        },
+        {
+          "name": "ram_available",
+          "status": "Warning",
+          "triggered_at": "2026-04-10T22:11:28-05:00"
+        },
+        {
+          "name": "ram_in_use",
+          "status": "Warning",
+          "triggered_at": "2026-04-10T22:11:58-05:00"
+        }
+      ]
+    },
+    "url": "https://app.netdata.cloud/spaces/slvn-co/rooms/all-nodes/alerts/mem.swap.used_swap:::e84d4453-cb1f-48b5-abfd-0a82629712bd?chart=mem.swap\u0026alarm=used_swap\u0026transition=ee19d16d-e3d5-43f3-b313-c9f7ee6fc7f8"
+  }
+}
