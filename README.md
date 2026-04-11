@@ -1,12 +1,17 @@
 # ntfy-bridge
 
-A simple bridge for [ntfy](https://ntfy.sh) that forwards webhooks from various services to Ntfy topics.
+A simple bridge for [ntfy](https://ntfy.sh) that forwards webhooks from various services to Ntfy topics. Written in
+Rust.
 
-## Features
+## Supported Services
 
-- Supports Netdata alerts and reachability notifications.
-- Bearer token authentication for API access.
-- Built-in rate limiting.
+### Netdata
+
+```http
+POST /api/v1/<ntfy topic>/netdata
+```
+
+Alert, reachability, and token webhooks from Netdata are supported.
 
 ## Configuration
 
@@ -27,3 +32,18 @@ Options:
   -h, --help                           Print help
   -V, --version                        Print version
 ```
+
+If `--api-token` (`API_TOKEN`) is configured, the bridge will require clients to include an `Authorization` header with
+the value `Bearer <API token>`.
+
+The base path for the API can be configured via `--base-path` (`BASE_PATH`). For example, if the base path is set to
+`webhooks`, the Netdata endpoint would be `/webhooks/v1/<ntfy topic>/netdata`. This defaults to `/api/v1`. This is
+useful if you want to host the ntfy-bridge on the same host as ntfy.
+
+## Usage
+
+```bash
+docker run ghcr.io/silvenga/ntfy-bridge:latest
+```
+
+Ntfy has a health endpoint at `/api/v1/health`.
