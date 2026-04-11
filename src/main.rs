@@ -38,8 +38,6 @@ async fn main() -> anyhow::Result<()> {
 
     let app = AppBuilder::new(ntfy_client, config.listen_addr().parse()?)
         .with_api_token(config.api_token().map(|s| s.to_owned()))
-        .with_rate_limit(config.rate_limit_per_second(), config.rate_limit_burst())
-        .with_use_x_forwarded_for(config.use_x_forwarded_for())
         .with_base_path(config.base_path().to_owned())
         .build()?;
 

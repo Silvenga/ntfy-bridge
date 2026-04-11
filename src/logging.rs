@@ -1,8 +1,6 @@
-use axum::extract::{ConnectInfo, Request};
+use axum::extract::Request;
 use axum::response::Response;
-use axum_client_ip::ClientIp;
 use futures_util::future::BoxFuture;
-use std::net::SocketAddr;
 use std::task::{Context, Poll};
 use tokio::time::Instant;
 use tower::{Layer, Service};
@@ -49,30 +47,18 @@ where
             .path_and_query()
             .map(|pq| pq.to_string())
             .unwrap_or_else(|| request.uri().path().to_string());
-        let extensions = request.extensions();
-        let client_ip_captured = extensions
-            .get::<ClientIp>()
-            .map(|ip| ip.0.to_string())
-            .or_else(|| {
-                extensions
-                    .get::<ConnectInfo<SocketAddr>>()
-                    .map(|ci| ci.0.ip().to_string())
-            });
 
         Box::pin(async move {
             let response = inner.call(request).await?;
             let latency = start.elapsed();
             let status = response.status().as_u16();
 
-            let client_ip = client_ip_captured.unwrap_or_else(|| "unknown".to_string());
-
             info!(
-                "{} {} -> {} ({}, {})",
+                "{} {} -> {} in {}",
                 method,
                 path_and_query,
                 status,
-                humantime::format_duration(latency),
-                client_ip
+                humantime::format_duration(latency)
             );
 
             Ok(response)

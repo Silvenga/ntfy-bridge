@@ -8,11 +8,8 @@ use axum::http::header::{CACHE_CONTROL, EXPIRES, SERVER};
 use axum::http::{HeaderValue, StatusCode};
 use axum::routing::{get, post};
 use axum::{Router, serve};
-use axum_client_ip::ClientIpSource;
 use std::net::SocketAddr;
-use std::sync::Arc;
 use tokio::net::TcpListener;
-use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
 use tower_http::set_header::SetResponseHeaderLayer;
 use tower_http::validate_request::ValidateRequestHeaderLayer;
 use tracing::info;
@@ -43,9 +40,6 @@ impl App {
 pub struct AppBuilder {
     ntfy_client: NtfyClientShared,
     api_token: Option<String>,
-    rate_limit_per_second: u64,
-    rate_limit_burst: u32,
-    use_x_forwarded_for: bool,
     base_path: String,
     listen_addr: SocketAddr,
 }
@@ -55,9 +49,6 @@ impl AppBuilder {
         Self {
             ntfy_client,
             api_token: None,
-            rate_limit_per_second: 2,
-            rate_limit_burst: 5,
-            use_x_forwarded_for: false,
             base_path: "api".to_string(),
             listen_addr,
         }
@@ -65,17 +56,6 @@ impl AppBuilder {
 
     pub fn with_api_token(mut self, api_token: Option<String>) -> Self {
         self.api_token = api_token;
-        self
-    }
-
-    pub fn with_rate_limit(mut self, per_second: u64, burst: u32) -> Self {
-        self.rate_limit_per_second = per_second;
-        self.rate_limit_burst = burst;
-        self
-    }
-
-    pub fn with_use_x_forwarded_for(mut self, use_x_forwarded_for: bool) -> Self {
-        self.use_x_forwarded_for = use_x_forwarded_for;
         self
     }
 
@@ -96,23 +76,8 @@ impl AppBuilder {
             api_routes = api_routes.layer(layer);
         }
 
-        let governor_conf = Arc::new(
-            GovernorConfigBuilder::default()
-                .per_second(self.rate_limit_per_second)
-                .burst_size(self.rate_limit_burst)
-                .use_headers()
-                .finish()
-                .context("should have built governor config")?,
-        );
-
         let state = AppState {
             ntfy_client: self.ntfy_client,
-        };
-
-        let client_ip_source = if self.use_x_forwarded_for {
-            ClientIpSource::RightmostXForwardedFor
-        } else {
-            ClientIpSource::ConnectInfo
         };
 
         let router = Router::new()
@@ -131,7 +96,6 @@ impl AppBuilder {
                     ],
                 )
             })
-            .layer(GovernorLayer::new(governor_conf))
             .layer(LoggingLayer)
             .layer(SetResponseHeaderLayer::if_not_present(
                 CACHE_CONTROL,
@@ -145,7 +109,6 @@ impl AppBuilder {
                 SERVER,
                 HeaderValue::from_static("ntfy-bridge"),
             ))
-            .layer(client_ip_source.into_extension())
             .with_state(state);
 
         Ok(App {
@@ -185,6 +148,7 @@ mod tests {
     use axum::http::StatusCode;
     use http_body_util::BodyExt;
     use std::net::SocketAddr;
+    use std::sync::Arc;
     use tower::{Service, ServiceExt};
 
     async fn build_test_app()
@@ -197,7 +161,6 @@ mod tests {
             Arc::new(mock_ntfy),
             SocketAddr::from(([127, 0, 0, 1], 8080)),
         )
-        .with_rate_limit(100, 100)
         .build()
         .expect("should have built test app")
         .router
@@ -219,7 +182,6 @@ mod tests {
             SocketAddr::from(([127, 0, 0, 1], 8080)),
         )
         .with_api_token(Some(token.to_string()))
-        .with_rate_limit(100, 100)
         .build()
         .expect("should have built test app with auth")
         .router
@@ -338,52 +300,6 @@ mod tests {
             .expect("should have collected robots.txt body")
             .to_bytes();
         assert_eq!(&body[..], b"User-agent: *\nDisallow: /");
-    }
-
-    #[tokio::test]
-    async fn when_rate_limit_exceeded_then_should_return_too_many_requests() {
-        let mut mock_ntfy = MockNtfyClient::new();
-        mock_ntfy.expect_send().returning(|_| Ok(()));
-
-        // Rate limit 1 request per second, burst size 1
-        let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
-        let mut app = AppBuilder::new(Arc::new(mock_ntfy), addr)
-            .with_rate_limit(1, 1)
-            .build()
-            .expect("should have built rate limited test app")
-            .router
-            .into_make_service_with_connect_info::<SocketAddr>();
-        let client_addr = SocketAddr::from(([127, 0, 0, 1], 1234));
-
-        // First request should pass
-        let request1 = Request::builder()
-            .uri("/api/v1/health")
-            .body(Body::empty())
-            .expect("should have built first request");
-        let response1 = app
-            .call(client_addr)
-            .await
-            .expect("should have created service for first request")
-            .oneshot(request1)
-            .await
-            .expect("should have received response for first request");
-
-        // Second request should fail
-        let request2 = Request::builder()
-            .uri("/api/v1/health")
-            .body(Body::empty())
-            .expect("should have built second request");
-        let response2 = app
-            .call(client_addr)
-            .await
-            .expect("should have created service for second request")
-            .oneshot(request2)
-            .await
-            .expect("should have received response for second request");
-
-        assert_eq!(response1.status(), StatusCode::OK);
-        assert_eq!(response2.status(), StatusCode::TOO_MANY_REQUESTS);
-        assert!(response2.headers().contains_key("retry-after"));
     }
 
     #[tokio::test]

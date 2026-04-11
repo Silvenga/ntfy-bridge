@@ -45,18 +45,6 @@ pub struct Config {
     #[arg(env = "LISTEN_ADDR", long, default_value = "0.0.0.0:8080")]
     pub listen_addr: String,
 
-    /// Rate limit requests per second
-    #[arg(env = "RATE_LIMIT_PER_SECOND", long, default_value = "2")]
-    pub rate_limit_per_second: u64,
-
-    /// Rate limit burst size
-    #[arg(env = "RATE_LIMIT_BURST", long, default_value = "5")]
-    pub rate_limit_burst: u32,
-
-    /// Trust X-Forwarded-For headers from a reverse proxy
-    #[arg(env = "USE_X_FORWARDED_FOR", long, default_value_t = false)]
-    pub use_x_forwarded_for: bool,
-
     /// Base path for the API
     #[arg(env = "BASE_PATH", long, default_value = "api")]
     pub base_path: String,
@@ -73,9 +61,6 @@ impl fmt::Display for Config {
             .field("ntfy_auth", &self.ntfy_credentials())
             .field("api_token", &self.api_token.as_ref().map(|_| "***"))
             .field("listen_addr", &self.listen_addr)
-            .field("rate_limit_per_second", &self.rate_limit_per_second)
-            .field("rate_limit_burst", &self.rate_limit_burst)
-            .field("use_x_forwarded_for", &self.use_x_forwarded_for)
             .field("base_path", &self.base_path)
             .field("log_level", &self.log_level)
             .finish()
@@ -156,18 +141,6 @@ impl Config {
         self.api_token.as_deref()
     }
 
-    pub fn rate_limit_per_second(&self) -> u64 {
-        self.rate_limit_per_second
-    }
-
-    pub fn rate_limit_burst(&self) -> u32 {
-        self.rate_limit_burst
-    }
-
-    pub fn use_x_forwarded_for(&self) -> bool {
-        self.use_x_forwarded_for
-    }
-
     pub fn base_path(&self) -> &str {
         &self.base_path
     }
@@ -212,17 +185,6 @@ mod tests {
             NtfyCredentials::None => {}
             _ => panic!("should have no credentials"),
         }
-        assert!(!config.use_x_forwarded_for());
-    }
-
-    #[test]
-    fn when_parsing_with_x_forwarded_for_then_should_set_it() {
-        let args = vec!["test", "--use-x-forwarded-for"];
-
-        let config =
-            Config::try_parse_from(args).expect("should have valid config with x-forwarded-for");
-
-        assert!(config.use_x_forwarded_for());
     }
 
     #[test]
