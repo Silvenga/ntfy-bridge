@@ -443,4 +443,23 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::NOT_FOUND);
     }
+
+    #[tokio::test]
+    async fn when_post_to_dump_then_should_return_accepted() {
+        let app = build_test_app().await;
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/v1/dump")
+                    .header("X-Test", "value")
+                    .body(Body::from("test body"))
+                    .expect("should have built dump request"),
+            )
+            .await
+            .expect("should have received dump response");
+
+        assert_eq!(response.status(), StatusCode::ACCEPTED);
+    }
 }
