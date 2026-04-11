@@ -7,7 +7,7 @@ use axum::{
     response::IntoResponse,
 };
 use ntfy::{Payload, Priority};
-use tracing::{error, info};
+use tracing::warn;
 use url::Url;
 
 pub async fn handle_netdata(
@@ -15,11 +15,6 @@ pub async fn handle_netdata(
     Path(topic): Path<String>,
     Json(netdata_payload): Json<NetdataPayload>,
 ) -> impl IntoResponse {
-    info!(
-        "Received netdata webhook for topic {}: {:?}",
-        topic, netdata_payload
-    );
-
     let ntfy_payload = match &netdata_payload {
         NetdataPayload::Token(token) => Payload::new(&topic)
             .message(format!("{}\n\nToken: {}", token.message, token.token))
@@ -68,7 +63,7 @@ pub async fn handle_netdata(
     };
 
     if let Err(e) = state.ntfy_client.send(&ntfy_payload).await {
-        error!("Failed to send notification to ntfy: {:?}", e);
+        warn!("Failed to send notification to ntfy: {:?}", e);
     }
 
     StatusCode::ACCEPTED
