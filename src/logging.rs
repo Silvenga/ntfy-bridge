@@ -35,21 +35,21 @@ where
     type Error = S::Error;
     type Future = BoxFuture<'static, Result<Self::Response, Self::Error>>;
 
-    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-        self.inner.poll_ready(cx)
+    fn poll_ready(&mut self, ctx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        self.inner.poll_ready(ctx)
     }
 
-    fn call(&mut self, req: Request<ReqBody>) -> Self::Future {
+    fn call(&mut self, request: Request<ReqBody>) -> Self::Future {
         let mut inner = self.inner.clone();
         let start = Instant::now();
 
-        let method = req.method().to_string();
-        let path_and_query = req
+        let method = request.method().to_string();
+        let path_and_query = request
             .uri()
             .path_and_query()
             .map(|pq| pq.to_string())
-            .unwrap_or_else(|| req.uri().path().to_string());
-        let extensions = req.extensions();
+            .unwrap_or_else(|| request.uri().path().to_string());
+        let extensions = request.extensions();
         let client_ip_captured = extensions
             .get::<ClientIp>()
             .map(|ip| ip.0.to_string())
@@ -60,9 +60,9 @@ where
             });
 
         Box::pin(async move {
-            let res = inner.call(req).await?;
+            let response = inner.call(request).await?;
             let latency = start.elapsed();
-            let status = res.status().as_u16();
+            let status = response.status().as_u16();
 
             let client_ip = client_ip_captured.unwrap_or_else(|| "unknown".to_string());
 
@@ -75,7 +75,7 @@ where
                 client_ip
             );
 
-            Ok(res)
+            Ok(response)
         })
     }
 }

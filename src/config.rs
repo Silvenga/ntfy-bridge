@@ -14,7 +14,9 @@ impl fmt::Display for NtfyCredentials {
         match self {
             Self::None => write!(f, "None"),
             Self::AuthToken(_) => write!(f, "AuthToken(***)"),
-            Self::UsernamePassword(u, _) => write!(f, "UsernamePassword({}, ***)", u),
+            Self::UsernamePassword(username, _) => {
+                write!(f, "UsernamePassword({}, ***)", username)
+            }
         }
     }
 }
@@ -180,8 +182,8 @@ impl Config {
     }
 }
 
-fn parse_ntfy_url(s: &str) -> Result<String, String> {
-    let url = Url::parse(s).map_err(|e| format!("invalid URL: {}", e))?;
+fn parse_ntfy_url(url_str: &str) -> Result<String, String> {
+    let url = Url::parse(url_str).map_err(|e| format!("invalid URL: {}", e))?;
 
     if url.scheme() != "http" && url.scheme() != "https" {
         return Err("scheme must be http or https".to_string());
@@ -191,7 +193,7 @@ fn parse_ntfy_url(s: &str) -> Result<String, String> {
         return Err("URL must have a host".to_string());
     }
 
-    Ok(s.to_string())
+    Ok(url_str.to_string())
 }
 
 #[cfg(test)]
@@ -243,9 +245,9 @@ mod tests {
             Config::try_parse_from(args).expect("should have valid config with credentials");
 
         match config.ntfy_credentials() {
-            NtfyCredentials::UsernamePassword(u, p) => {
-                assert_eq!(u, "user");
-                assert_eq!(p, "pass");
+            NtfyCredentials::UsernamePassword(username, password) => {
+                assert_eq!(username, "user");
+                assert_eq!(password, "pass");
             }
             _ => panic!("should have username/password credentials"),
         }

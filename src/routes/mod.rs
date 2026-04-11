@@ -5,5 +5,4 @@ mod robots;
 
 pub use dump::*;
 pub use health::*;
-pub use netdata::*;
 pub use robots::*;

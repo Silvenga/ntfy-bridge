@@ -1,6 +1,7 @@
 use crate::logging::LoggingLayer;
 use crate::ntfy::NtfyClientShared;
-use crate::routes::{handle_dump, handle_netdata, health_check, robots_txt};
+use crate::routes::netdata::handle_netdata;
+use crate::routes::{handle_dump, health_check, robots_txt};
 use crate::state::AppState;
 use anyhow::Context;
 use axum::http::header::{CACHE_CONTROL, EXPIRES, SERVER};
@@ -355,34 +356,34 @@ mod tests {
         let client_addr = SocketAddr::from(([127, 0, 0, 1], 1234));
 
         // First request should pass
-        let req1 = Request::builder()
+        let request1 = Request::builder()
             .uri("/api/v1/health")
             .body(Body::empty())
             .expect("should have built first request");
-        let res1 = app
+        let response1 = app
             .call(client_addr)
             .await
             .expect("should have created service for first request")
-            .oneshot(req1)
+            .oneshot(request1)
             .await
             .expect("should have received response for first request");
 
         // Second request should fail
-        let req2 = Request::builder()
+        let request2 = Request::builder()
             .uri("/api/v1/health")
             .body(Body::empty())
             .expect("should have built second request");
-        let res2 = app
+        let response2 = app
             .call(client_addr)
             .await
             .expect("should have created service for second request")
-            .oneshot(req2)
+            .oneshot(request2)
             .await
             .expect("should have received response for second request");
 
-        assert_eq!(res1.status(), StatusCode::OK);
-        assert_eq!(res2.status(), StatusCode::TOO_MANY_REQUESTS);
-        assert!(res2.headers().contains_key("retry-after"));
+        assert_eq!(response1.status(), StatusCode::OK);
+        assert_eq!(response2.status(), StatusCode::TOO_MANY_REQUESTS);
+        assert!(response2.headers().contains_key("retry-after"));
     }
 
     #[tokio::test]

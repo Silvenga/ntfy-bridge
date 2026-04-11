@@ -1,4 +1,5 @@
-pub mod handler;
-pub mod models;
+mod handler;
+mod models;
 
-pub use handler::handle_netdata;
+pub use handler::*;
+pub use models::*;
