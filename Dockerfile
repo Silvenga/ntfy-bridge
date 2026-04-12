@@ -31,5 +31,6 @@ COPY --from=builder /app/target/release/ntfy-bridge /usr/local/bin/
 USER ntfy-bridge
 
 EXPOSE 8080
+STOPSIGNAL SIGINT
 
 CMD ["ntfy-bridge"]
