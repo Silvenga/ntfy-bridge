@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/Silvenga/ntfy-bridge/compare/v1.0.0...v1.0.1) (2026-04-12)
+
+
+### Bug Fixes
+
+* fixed hanging during container termination ([0138857](https://github.com/Silvenga/ntfy-bridge/commit/013885703f4854d6ad281bc6092d1644f769c2f5))
+
 ## 1.0.0 (2026-04-11)
 
 
